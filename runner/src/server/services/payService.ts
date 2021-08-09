@@ -1,5 +1,5 @@
 import config from "../config";
-import { postJson } from "./httpService";
+import { get, postJson } from "./httpService";
 import { Fee, PrefilledFeeFields } from "@xgovformbuilder/model";
 import { FormSubmissionState } from "server/plugins/engine/types";
 import { HapiServer } from "server/types";
@@ -76,6 +76,15 @@ export class PayService {
         meta,
       },
     });
+    return payload;
+  }
+
+  async payStatus(url: string, apiKey: string) {
+    const { payload } = await get(url, {
+      ...this.options(apiKey),
+      json: true,
+    });
+
     return payload;
   }
 
