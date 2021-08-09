@@ -1,25 +1,39 @@
 import config from "../config";
-import { get, postJson } from "./httpService";
-import { nanoid } from "nanoid";
-
-export type FeeDetails = {
-  description: string;
-  amount: number;
-  condition: string;
-  multiplier: string; // this points to sectionName.fieldName
-  multiplyBy?: number; // the value retrieved from multiplier field above (see summary page retrieveFees method)
-};
+import { postJson } from "./httpService";
+import { Fee, PrefilledFeeFields } from "@xgovformbuilder/model";
+import { FormSubmissionState } from "server/plugins/engine/types";
+import { HapiServer } from "server/types";
+import { CacheService } from "server/services/cacheService";
 
 export type Fees = {
-  details: FeeDetails[];
+  details: Fee[];
   total: number;
   paymentReference?: string;
+};
+
+type SerialisedFeePayload = {
+  amount: Fee["amount"];
+  reference: string;
+  description: string;
+  return_url: string;
+  prefilled_cardholder_details: {
+    cardholder_name?: PrefilledFeeFields["cardholderName"];
+    billing_address?: Partial<PrefilledFeeFields["billingAddress"]>;
+  };
 };
 
 export class PayService {
   /**
    * Service responsible for handling requests to GOV.UK Pay. This service has been registered by {@link createServer}
    */
+
+  logger: HapiServer["logger"];
+  cacheService: CacheService;
+
+  constructor(server) {
+    this.logger = server.logger;
+    this.cacheService = server.cacheService;
+  }
 
   /**
    * utility method that returns the headers for a Pay request.
@@ -33,35 +47,35 @@ export class PayService {
     };
   }
 
-  payRequestData(amount: number, description: string, returnUrl: string) {
-    return {
+  async payRequest(request) {
+    const { params } = request;
+    const state = await this.cacheService.getState(request);
+    const { pay } = state;
+    const { meta } = pay;
+    const { amount, description, returnUrl } = meta;
+
+    const { prefilledPayFields = {} } = request.server.app.forms[params.id];
+    const prefilledDetails = this.prefilledFieldsToDetails(
+      prefilledPayFields,
+      state
+    );
+
+    const data = {
       amount,
-      reference: nanoid(10),
       description,
       return_url: returnUrl,
+      prefilled_cardholder_details: { ...prefilledDetails },
     };
-  }
 
-  async payRequest(
-    amount: number,
-    description: string,
-    apiKey: string,
-    returnUrl: string
-  ) {
-    const data = {
-      ...this.options(apiKey),
-      payload: this.payRequestData(amount, description, returnUrl),
-    };
     const { payload } = await postJson(`${config.payApiUrl}/payments`, data);
-    return payload;
-  }
-
-  async payStatus(url: string, apiKey: string) {
-    const { payload } = await get(url, {
-      ...this.options(apiKey),
-      json: true,
+    await this.cacheService.mergeState(request, {
+      pay: {
+        payId: payload.payment_id,
+        reference: payload.reference,
+        self: payload._links.self.href,
+        meta,
+      },
     });
-
     return payload;
   }
 
@@ -82,5 +96,21 @@ export class PayService {
         return `${detail.description}: £${detail.amount / 100}`;
       })
       .join(", ");
+  }
+
+  prefilledFieldsToDetails(
+    fields: Partial<PrefilledFeeFields>,
+    state: Partial<FormSubmissionState>
+  ): Partial<SerialisedFeePayload> {
+    const serialisedMap = {
+      cardholderName: "cardholder_name",
+      billingAddress: "billing_address",
+    };
+
+    const entries = Object.entries(fields).map(([key, field]) => {
+      return [serialisedMap[key] ?? key, state[field]];
+    });
+
+    return Object.fromEntries(entries);
   }
 }

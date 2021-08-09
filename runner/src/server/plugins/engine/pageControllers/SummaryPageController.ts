@@ -185,27 +185,22 @@ export class SummaryPageController extends PageController {
       const url = new URL(
         `${request.headers.origin}/${request.params.id}/status`
       ).toString();
-      const res = await payService.payRequest(
-        summaryViewModel.fees.total,
-        description,
-        summaryViewModel.payApiKey || "",
-        url
-      );
 
       request.yar.set("basePath", model.basePath);
+
       await cacheService.mergeState(request, {
         pay: {
-          payId: res.payment_id,
-          reference: res.reference,
-          self: res._links.self.href,
           meta: {
             amount: summaryViewModel.fees.total,
             description,
             attempts: 1,
             payApiKey: summaryViewModel.payApiKey,
+            returnUrl: url,
           },
         },
       });
+
+      const res = await payService.payRequest(request);
       summaryViewModel.webhookDataPaymentReference = res.reference;
       await cacheService.mergeState(request, {
         webhookData: summaryViewModel.validatedWebhookData,

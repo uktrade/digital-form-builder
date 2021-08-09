@@ -1,3 +1,16 @@
+export type PayState = {
+  payId: string;
+  reference: string;
+  self: string;
+  meta: {
+    amount: number;
+    description: string;
+    returnUrl: string;
+    attempts: number;
+    payApiKey: string;
+  };
+};
+
 /**
  * FormSubmissionState is an object containing the following props:
  * 1. progress[]: which indicates the urls the user have already submitted.
@@ -42,6 +55,7 @@
  */
 export type FormSubmissionState = {
   progress: string[];
+  pay: PayState;
   [propName: string]: any;
 };
 

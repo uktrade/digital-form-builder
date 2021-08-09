@@ -5,7 +5,6 @@ import { feedbackReturnInfoKey, redirectUrl } from "../helpers";
 import { decodeFeedbackContextInfo } from "../feedback";
 import { formSchema } from "server/schemas/formSchema";
 import { SummaryPageController } from "../pageControllers";
-import type { Fees } from "server/services/payService";
 import { FormSubmissionState } from "../types";
 import {
   FEEDBACK_CONTEXT_ITEMS,
@@ -19,6 +18,7 @@ import {
   NotifyModel,
 } from "server/plugins/engine/models/submission";
 import { FormDefinition, isMultipleApiKey } from "@xgovformbuilder/model";
+import { Fees } from "src/server/services/payService";
 
 const { serviceName } = config;
 

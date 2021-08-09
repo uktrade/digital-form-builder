@@ -144,6 +144,22 @@ const feeSchema = joi.object().keys({
   amount: joi.number().required(),
   multiplier: joi.string().optional(),
   condition: joi.string().optional(),
+  prefilledFields: joi
+    .object()
+    .keys({
+      cardholderName: joi.string().optional(),
+      billingAddress: joi
+        .object()
+        .keys({
+          line1: joi.string().optional(),
+          line2: joi.string().optional(),
+          postcode: joi.string().optional(),
+          city: joi.string().optional(),
+          country: joi.string().optional,
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 const multiApiKeySchema = joi.object({

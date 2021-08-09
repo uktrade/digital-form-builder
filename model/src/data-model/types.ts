@@ -73,6 +73,25 @@ export type WebhookOutputConfiguration = {
   url: string;
 };
 
+export type PrefilledFeeFields = {
+  cardholderName: string;
+  billingAddress: {
+    line1: string;
+    line2: string;
+    postcode: string;
+    city: string;
+    country: string;
+  };
+};
+
+export type Fee = {
+  description: string;
+  amount: number;
+  multiplier?: any;
+  multiplyBy?: number; // the value retrieved from multiplier field above (see summary page retrieveFees method)
+  condition?: string;
+};
+
 export type OutputConfiguration =
   | EmailOutputConfiguration
   | NotifyOutputConfiguration
@@ -110,7 +129,8 @@ export type FormDefinition = {
   name?: string | undefined;
   feedback?: Feedback;
   phaseBanner?: PhaseBanner;
-  fees: any[];
+  fees: Fee[];
+  prefilledPayFields?: Partial<PrefilledFeeFields>;
   skipSummary?: boolean | undefined;
   outputs: Output[];
   declaration?: string | undefined;
