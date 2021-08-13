@@ -69,8 +69,8 @@
     }
   ],
   "payApiKey": {
-    "test": "api_test_nem8ej1bsqtkc615buga6l5e3o7udjlupfud3tq67978cn3bjk0i593l77",
-    "production": "api_live_9h53oo4qp4djm56vk10p549gm34auim3l8rials6vghorobm63056uhtnl"
+    "test": "test_key",
+    "production": "production_key"
   },
   "prefilledPayFields": {
     "billingAddress": {

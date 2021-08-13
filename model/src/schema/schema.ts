@@ -196,6 +196,23 @@ const phaseBannerSchema = joi.object().keys({
   phase: joi.string().valid("alpha", "beta"),
 });
 
+const prefilledPayFieldsSchema = joi
+  .object()
+  .keys({
+    cardholderName: joi.string().optional(),
+    billingAddress: joi
+      .object()
+      .keys({
+        line1: joi.string().optional(),
+        line2: joi.string().optional(),
+        postcode: joi.string().optional(),
+        city: joi.string().optional(),
+        country: joi.string().optional(),
+      })
+      .optional(),
+  })
+  .optional();
+
 export const Schema = joi
   .object()
   .required()
@@ -208,22 +225,7 @@ export const Schema = joi
     conditions: joi.array().items(conditionsSchema).unique("name"),
     lists: joi.array().items(listSchema).unique("name"),
     fees: joi.array().items(feeSchema).optional(),
-    prefilledPayFields: joi
-      .object()
-      .keys({
-        cardholderName: joi.string().optional(),
-        billingAddress: joi
-          .object()
-          .keys({
-            line1: joi.string().optional(),
-            line2: joi.string().optional(),
-            postcode: joi.string().optional(),
-            city: joi.string().optional(),
-            country: joi.string().optional,
-          })
-          .optional(),
-      })
-      .optional(),
+    prefilledPayFields: prefilledPayFieldsSchema,
     metadata: joi.object({ a: joi.any() }).unknown().optional(),
     declaration: joi.string().allow("").optional(),
     outputs: joi.array().items(outputSchema),

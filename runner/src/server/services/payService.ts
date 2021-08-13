@@ -4,6 +4,8 @@ import { Fee, PrefilledFeeFields } from "@xgovformbuilder/model";
 import { FormSubmissionState } from "server/plugins/engine/types";
 import { HapiServer } from "server/types";
 import { CacheService } from "server/services/cacheService";
+import { nanoid } from "nanoid";
+import { reach } from "hoek";
 
 export type Fees = {
   details: Fee[];
@@ -31,8 +33,9 @@ export class PayService {
   cacheService: CacheService;
 
   constructor(server) {
+    const { cacheService } = server.services([]);
     this.logger = server.logger;
-    this.cacheService = server.cacheService;
+    this.cacheService = cacheService;
   }
 
   /**
@@ -51,23 +54,36 @@ export class PayService {
     const { params } = request;
     const state = await this.cacheService.getState(request);
     const { pay } = state;
-    const { meta } = pay;
-    const { amount, description, returnUrl } = meta;
+    if (!pay) {
+      this.logger.warn(
+        ["PayService", "payRequest"],
+        `user ${request.yar.id} did not have pay data stored`
+      );
+      throw Error(`user ${request.yar.id} did not have pay data stored`);
+    }
 
-    const { prefilledPayFields = {} } = request.server.app.forms[params.id];
+    const { meta } = pay;
+    const { amount, description, returnUrl, payApiKey } = meta;
+    const form = request.server.app.forms[params.id];
+    const { prefilledPayFields = {} } = form.def;
     const prefilledDetails = this.prefilledFieldsToDetails(
       prefilledPayFields,
       state
     );
 
     const data = {
-      amount,
-      description,
-      return_url: returnUrl,
-      prefilled_cardholder_details: { ...prefilledDetails },
+      ...this.options(payApiKey),
+      payload: {
+        reference: nanoid(10),
+        amount,
+        description,
+        return_url: returnUrl,
+        prefilled_cardholder_details: { ...prefilledDetails },
+      },
     };
 
     const { payload } = await postJson(`${config.payApiUrl}/payments`, data);
+
     await this.cacheService.mergeState(request, {
       pay: {
         payId: payload.payment_id,
@@ -80,6 +96,11 @@ export class PayService {
   }
 
   async payStatus(url: string, apiKey: string) {
+    this.logger.info(
+      ["PayService", "payStatus"],
+      "retrieving payment status",
+      url
+    );
     const { payload } = await get(url, {
       ...this.options(apiKey),
       json: true,
@@ -116,10 +137,21 @@ export class PayService {
       billingAddress: "billing_address",
     };
 
-    const entries = Object.entries(fields).map(([key, field]) => {
-      return [serialisedMap[key] ?? key, state[field]];
+    const { billingAddress, ...rest } = fields;
+
+    const billingAddressEntries = Object.entries(
+      fields.billingAddress ?? {}
+    ).map(([key, field]) => {
+      return [serialisedMap[key] ?? key, reach(state, field)];
     });
 
-    return Object.fromEntries(entries);
+    const entries = Object.entries(rest).map(([key, field]) => {
+      return [serialisedMap[key] ?? key, reach(state, field)];
+    });
+
+    return {
+      ...Object.fromEntries(entries),
+      billing_address: Object.fromEntries(billingAddressEntries),
+    };
   }
 }
