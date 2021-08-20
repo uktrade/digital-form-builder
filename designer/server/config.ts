@@ -1,7 +1,31 @@
 import dotenv from "dotenv";
 import joi from "joi";
 
-dotenv.config({ path: "./../.env" });
+dotenv.config({ path: ".env" });
+
+export interface Config {
+  env: "development" | "test" | "production";
+  port: number;
+  previewUrl: string;
+  publishUrl: string;
+  persistentBackend: "s3" | "blob" | "preview";
+  s3Bucket?: string;
+  persistentKeyId?: string;
+  persistentAccessKey?: string;
+  logLevel: "trace" | "info" | "debug" | "error";
+  phase?: "alpha" | "beta";
+  footerText?: string;
+  isProd: boolean;
+  isDev: boolean;
+  isTest: boolean;
+  lastCommit: string;
+  lastTag: string;
+  sessionTimeout: number;
+  sessionCookiePassword: string;
+}
+
+// server-side storage expiration - defaults to 20 minutes
+const sessionSTimeoutInMilliseconds = 20 * 60 * 1000;
 
 // Define config schema
 const schema = joi.object({
@@ -20,6 +44,12 @@ const schema = joi.object({
     .string()
     .valid("trace", "info", "debug", "error")
     .default("debug"),
+  phase: joi.string().valid("alpha", "beta").optional(),
+  footerText: joi.string().optional(),
+  lastCommit: joi.string().default("undefined"),
+  lastTag: joi.string().default("undefined"),
+  sessionTimeout: joi.number().default(sessionSTimeoutInMilliseconds),
+  sessionCookiePassword: joi.string().optional(),
 });
 
 // Build config
@@ -32,7 +62,13 @@ const config = {
   persistentKeyId: process.env.PERSISTENT_KEY_ID,
   persistentAccessKey: process.env.PERSISTENT_ACCESS_KEY,
   s3Bucket: process.env.S3_BUCKET,
-  logLevel: process.env.LOG_LEVEL || "debug",
+  logLevel: process.env.LOG_LEVEL || "error",
+  phase: process.env.PHASE || "alpha",
+  footerText: process.env.FOOTER_TEXT,
+  lastCommit: process.env.LAST_COMMIT || process.env.LAST_COMMIT_GH,
+  lastTag: process.env.LAST_TAG || process.env.LAST_TAG_GH,
+  sessionTimeout: process.env.SESSION_TIMEOUT,
+  sessionCookiePassword: process.env.SESSION_COOKIE_PASSWORD,
 };
 
 // Validate config
@@ -44,7 +80,7 @@ if (result.error) {
 }
 
 // Use the joi validated value
-const value = result.value;
+const value: Config = result.value;
 
 value.isProd = value.env === "production";
 value.isDev = !value.isProd;

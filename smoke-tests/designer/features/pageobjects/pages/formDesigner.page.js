@@ -1,33 +1,40 @@
 const Page = require("./basePage");
+const ComponentMappings = require("../../../support/componentMapping");
 
 class FormDesignerPage extends Page {
-  get designerMenu() {
-    return $("nav.menu");
+  /**
+   * Find the section name element for a specific page
+   * @param pageName
+   * @returns {Element}
+   */
+  pageSectionName(pageName) {
+    const pageIndex = this.getPageIndex(pageName);
+    return browser.$$(".page__heading span")[pageIndex];
   }
 
   get addComponentToPage() {
-    return $("button=Create component");
+    return browser.$("button=Create component");
   }
 
   get editPage() {
-    return $("button=Edit page");
+    return browser.$("button=Edit page");
   }
 
   get formPages() {
-    return $$(".page");
+    return browser.$$(".page");
   }
 
   get formPageTitles() {
-    return $$(".page__heading h3");
+    return browser.$$(".page__heading h3");
   }
 
   get linkLine() {
     return $("polyline");
   }
 
-  get pagesLink() {
-    browser.react$("_n").waitForExist();
-    return browser.react$("_n");
+  pagesLink(fromPage, toPage) {
+    let pageLink = fromPage.replace(" ", "-") + "-" + toPage.replace(" ", "-");
+    return browser.$(`[data-testid='${pageLink}']`);
   }
 
   dateField(name) {
@@ -46,6 +53,10 @@ class FormDesignerPage extends Page {
     return this.pageContainer(pageName).react$("EmailAddressField");
   }
 
+  flashCard(pageName) {
+    return this.pageContainer(pageName).react$("FlashCard");
+  }
+
   paragraph(pageName) {
     return this.pageContainer(pageName).react$("Para");
   }
@@ -54,8 +65,26 @@ class FormDesignerPage extends Page {
     return this.pageContainer(pageName).react$("TextField");
   }
 
-  pageContainer(elem) {
-    return $(`#\\/${elem.toLowerCase().replace(" ", "-")}`);
+  getComponentOnPage(pageName, componentName) {
+    const mappedName = ComponentMappings[componentName]
+      ? ComponentMappings[componentName]
+      : componentName;
+    return this.pageContainer(pageName).react$(mappedName);
+  }
+
+  pageContainer(name) {
+    return this.formPages.find((el) => el.getText().includes(name));
+  }
+
+  /**
+   * Clicks on a component within a form page
+   * @param componentType
+   */
+  editPageComponent(componentType) {
+    browser
+      .$(`.component-${componentType.toLowerCase()}`)
+      .waitForDisplayed({ interval: 1000 });
+    browser.$(`.component-${componentType.toLowerCase()}`).click();
   }
 
   getTitleTextForPage(name) {
@@ -70,6 +99,10 @@ class FormDesignerPage extends Page {
     return this.pageContainer(name).$("button=Edit page");
   }
 
+  previewPageForPageName(name) {
+    return this.pageContainer(name).$(".page a");
+  }
+
   dropdownComponentForPage(name) {
     return this.pageContainer(name).$(".dropdown");
   }
@@ -81,7 +114,7 @@ class FormDesignerPage extends Page {
   getPageIndex(name) {
     this.designerMenu.waitForDisplayed();
     return this.formPages.findIndex((elem) => {
-      return elem.getText() == name;
+      return elem.getText().includes(name);
     });
   }
 

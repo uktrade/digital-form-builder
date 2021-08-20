@@ -76,10 +76,11 @@ export const ComponentTypes: ComponentDef[] = [
   {
     name: "SelectField",
     type: "SelectField",
-    title: "SelectField",
+    title: "Select field",
     subType: "field",
     options: {},
     schema: {},
+    list: "",
   },
   {
     name: "AutocompleteField",
@@ -88,6 +89,7 @@ export const ComponentTypes: ComponentDef[] = [
     subType: "field",
     options: {},
     schema: {},
+    list: "",
   },
   {
     name: "RadiosField",
@@ -96,6 +98,7 @@ export const ComponentTypes: ComponentDef[] = [
     subType: "field",
     options: {},
     schema: {},
+    list: "",
   },
   {
     name: "CheckboxesField",
@@ -104,6 +107,7 @@ export const ComponentTypes: ComponentDef[] = [
     subType: "field",
     options: {},
     schema: {},
+    list: "",
   },
   {
     name: "NumberField",
@@ -117,7 +121,7 @@ export const ComponentTypes: ComponentDef[] = [
   {
     name: "UkAddressField",
     type: "UkAddressField",
-    title: "Uk address field",
+    title: "UK address field",
     subType: "field",
     hint: "",
     options: {},
@@ -193,6 +197,7 @@ export const ComponentTypes: ComponentDef[] = [
     subType: "content",
     options: {},
     schema: {},
+    list: "",
   },
   {
     name: "List",
@@ -201,5 +206,6 @@ export const ComponentTypes: ComponentDef[] = [
     subType: "content",
     options: {},
     schema: {},
+    list: "",
   },
 ];

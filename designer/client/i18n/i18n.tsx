@@ -1,14 +1,22 @@
 import * as React from "react";
-import i18next from "i18next";
+import i18next, { InitOptions, TOptions } from "i18next";
 import Backend from "i18next-http-backend";
 import enCommonTranslations from "./translations/en.translation.json";
+import upperFirst from "lodash/upperFirst";
 
-const DEFAULT_SETTINGS = {
+const interpolationFormats = {
+  capitalise: (value) => upperFirst(value),
+};
+
+const DEFAULT_SETTINGS: InitOptions = {
   lng: "en",
   fallbackLng: "en",
   debug: false,
   interpolation: {
     escapeValue: false,
+    format: function (value, format, lng) {
+      return interpolationFormats[format]?.(value) ?? value;
+    },
   },
   resources: {
     en: {
@@ -29,7 +37,9 @@ export const initI18n = (
 
 export type I18n = (text: string, options?: any) => string;
 
-export const i18n: I18n = (text, options) => i18next.t(text, options);
+export const i18n: I18n = (text: string, options: TOptions) => {
+  return i18next.t(text, options);
+};
 
 export interface WithI18nProps {
   i18n: I18n;

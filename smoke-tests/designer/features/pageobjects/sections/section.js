@@ -1,6 +1,6 @@
 module.exports = class Section {
   get parentElement() {
-    return browser.$(".flyout-menu-container div.panel");
+    return browser.$(".panel");
   }
 
   get pageTitle() {
@@ -12,11 +12,29 @@ module.exports = class Section {
     return browser.$("#section-title");
   }
 
-  get saveBtn() {
-    return this.parentElement.$(".govuk-button=Save");
+  get sectionTitles() {
+    return browser.$$("[data-testid='flyout-heading']");
   }
 
-  get closeSection() {
-    return browser.$("a.close");
+  get saveBtn() {
+    browser.$(".govuk-button=Save").scrollIntoView();
+    return browser.$(".govuk-button=Save");
+  }
+
+  get closeLinks() {
+    return browser.$$("=Close");
+  }
+
+  /**
+   * Clicks on a single link of a specified name
+   * @param linkName
+   */
+  clickLink(linkName) {
+    browser.$(`=${linkName}`).waitForDisplayed();
+    browser.$(`=${linkName}`).click();
+  }
+
+  clickDataTestId(dataTestId) {
+    browser.$(`[data-testid='${dataTestId}']`).click();
   }
 };

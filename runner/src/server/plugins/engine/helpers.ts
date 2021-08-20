@@ -1,10 +1,10 @@
 import { RelativeUrl } from "./feedback";
 import { HapiRequest, HapiResponseToolkit } from "server/types";
 
-const paramsToCopy = [
-  RelativeUrl.FEEDBACK_RETURN_INFO_PARAMETER,
-  RelativeUrl.VISIT_IDENTIFIER_PARAMETER,
-];
+export const feedbackReturnInfoKey = "f_t";
+export const visitIdentifierKey = "visit";
+
+const paramsToCopy = [feedbackReturnInfoKey, visitIdentifierKey];
 
 export function proceed(
   request: HapiRequest,
@@ -22,6 +22,27 @@ export function proceed(
 
 type Params = { num?: number; returnUrl: string } | {};
 
+export function nonRelativeRedirectUrl(
+  request: HapiRequest,
+  targetUrl: string,
+  params: Params = {}
+) {
+  const url = new URL(targetUrl);
+
+  Object.entries(params).forEach(([name, value]) => {
+    url.searchParams.append(name, `${value}`);
+  });
+
+  paramsToCopy.forEach((key) => {
+    const value = request.query[key];
+    if (typeof value === "string") {
+      url.searchParams.append(key, value);
+    }
+  });
+
+  return url.toString();
+}
+
 export function redirectUrl(
   request: HapiRequest,
   targetUrl: string,
@@ -34,8 +55,8 @@ export function redirectUrl(
 
   paramsToCopy.forEach((key) => {
     const value = request.query[key];
-    if (typeof value === "string") {
-      relativeUrl.addParamIfNotPresent(key, value);
+    if (typeof value === "string" && !relativeUrl.getParam(key)) {
+      relativeUrl.setParam(key, value);
     }
   });
 

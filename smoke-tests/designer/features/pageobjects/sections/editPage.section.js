@@ -2,15 +2,15 @@ const Section = require("./section");
 
 class EditPageSection extends Section {
   get parentElement() {
-    return browser.$(".flyout-menu-container");
+    return browser.$(".panel");
   }
 
   get sectionDropdown() {
     return this.parentElement.$("select#page-section");
   }
 
-  get duplicateBtn() {
-    return this.parentElement.$(".govuk-button=Duplicate");
+  get pagePath() {
+    return this.parentElement.$("#page-path");
   }
 
   get deleteBtn() {

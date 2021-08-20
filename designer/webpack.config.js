@@ -5,6 +5,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 const nodeExternals = require("webpack-node-externals");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
   .BundleAnalyzerPlugin;
+const autoprefixer = require("autoprefixer");
 
 const devMode = process.env.NODE_ENV !== "production";
 const prodMode = process.env.NODE_ENV === "production";
@@ -18,6 +19,7 @@ const client = {
   output: {
     path: path.resolve(__dirname, "dist", "client"),
     filename: "assets/[name].js",
+    publicPath: "",
   },
   resolve: {
     extensions: [".js", ".jsx", ".ts", ".tsx"],
@@ -45,8 +47,21 @@ const client = {
               publicPath: "../../",
             },
           },
-          "css-loader",
-          "sass-loader",
+          {
+            loader: "css-loader",
+            options: {},
+          },
+          {
+            loader: "postcss-loader",
+          },
+          {
+            loader: "sass-loader",
+            options: {
+              sassOptions: {
+                outputStyle: "expanded",
+              },
+            },
+          },
         ],
       },
       {

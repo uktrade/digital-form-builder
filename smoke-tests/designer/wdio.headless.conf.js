@@ -1,14 +1,14 @@
 const { config } = require("./wdio.conf.js");
 
-(config.baseUrl = "http://localhost:3000"), // TODO:- Change to the url in the CI environment
+(config.maxInstances = 6),
   (config.capabilities = [
     {
-      maxInstances: 5, // number instances in parallel
+      maxInstances: 6, // number instances in parallel
       browserName: "chrome",
       "goog:chromeOptions": {
         args: [
           "--disable-infobars",
-          "--window-size=1280,800",
+          "--window-size=1444,774",
           "--headless",
           "--no-sandbox",
           "--disable-gpu",
@@ -24,7 +24,7 @@ config.reporters = [
   [
     "cucumberjs-json",
     {
-      jsonFolder: "./reports/ci/",
+      jsonFolder: "./reports/json/",
       language: "en",
     },
   ],

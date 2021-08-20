@@ -2,7 +2,7 @@ import fs from "fs";
 import hapi, { ServerOptions } from "@hapi/hapi";
 
 import Scooter from "@hapi/scooter";
-import inert from "inert";
+import inert from "@hapi/inert";
 import Schmervice from "schmervice";
 import blipp from "blipp";
 
@@ -24,7 +24,6 @@ import {
   EmailService,
   NotifyService,
   PayService,
-  SheetsService,
   UploadService,
   WebhookService,
 } from "./services";
@@ -44,7 +43,11 @@ const serverOptions = (): ServerOptions => {
         },
       },
       security: {
-        hsts: true,
+        hsts: {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: false,
+        },
         xss: true,
         noSniff: true,
         xframe: true,
@@ -75,12 +78,13 @@ async function createServer(routeConfig: RouteConfig) {
   if (config.rateLimit) {
     await server.register(configureRateLimitPlugin(routeConfig));
   }
-
+  await server.register(pluginSession);
   await server.register(pluginPulse);
   await server.register(inert);
   await server.register(Scooter);
   await server.register(configureBlankiePlugin(config));
   await server.register(configureCrumbPlugin(config, routeConfig));
+  await server.register(pluginLogging);
   await server.register(Schmervice);
 
   server.registerService([
@@ -90,7 +94,6 @@ async function createServer(routeConfig: RouteConfig) {
     UploadService,
     EmailService,
     WebhookService,
-    SheetsService,
   ]);
 
   server.ext(
@@ -122,7 +125,6 @@ async function createServer(routeConfig: RouteConfig) {
   );
 
   await server.register(pluginLocale);
-  await server.register(pluginSession);
   await server.register(pluginViews);
   await server.register(configureEnginePlugin(formFileName, formFilePath));
   await server.register(pluginApplicationStatus);
@@ -131,7 +133,6 @@ async function createServer(routeConfig: RouteConfig) {
 
   if (!config.isTest) {
     await server.register(blipp);
-    await server.register(pluginLogging);
   }
 
   return server;

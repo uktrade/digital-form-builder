@@ -3,12 +3,29 @@
  * that is shared across all page objects
  */
 module.exports = class Page {
+  /**
+   * Clicks on a button using its name
+   * @param buttonName
+   */
+  clickButton(buttonName) {
+    return browser.$(`button=${buttonName}`).click();
+  }
+
   get designerMenu() {
-    return $("nav.menu");
+    return browser.$(".menu");
   }
 
   get saveBtn() {
     return this.parent.$(".govuk-button");
+  }
+
+  /**
+   * Used for clicking on a link with a specific name
+   * @param linkName
+   * @returns {Element}
+   */
+  clickLink(linkName) {
+    return browser.$(`=${linkName}`).click();
   }
 
   /**
@@ -17,6 +34,10 @@ module.exports = class Page {
    */
   open(path) {
     return browser.url(`/${path}`);
+  }
+
+  get govPhaseBanner() {
+    return browser.$(".govuk-phase-banner");
   }
 
   get govFooter() {
@@ -36,5 +57,21 @@ module.exports = class Page {
     links.forEach((link) =>
       expect(this.footerLinks(`${link}`)).toBeDisplayed()
     );
+  }
+
+  /**
+   * Selects a value from a select list by text
+   * @param listName
+   */
+  selectList(listName) {
+    browser.$(".govuk-select").selectByVisibleText(listName);
+  }
+
+  get errorSummary() {
+    return browser.$(".govuk-error-summary");
+  }
+
+  get errorSummaryHeading() {
+    return browser.$(".govuk-error-summary__title");
   }
 };

@@ -1,12 +1,26 @@
+import randomId from "../randomId";
+
 async function storeConditionIfNecessary(data, conditions) {
   let condition;
+
   if (conditions && conditions.hasConditions) {
-    condition = await data.getId();
+    condition = randomId();
     data = data.addCondition(condition, conditions.name, conditions);
   }
+
   return { data, condition };
 }
 
 export default {
   storeConditionIfNecessary: storeConditionIfNecessary,
+};
+
+export const tryParseInt = (val) => {
+  let parsed = parseInt(val, 10);
+  return isNaN(parsed) ? undefined : parsed;
+};
+
+export const isInt = (val) => {
+  const int = parseInt(val, 10);
+  return !isNaN(int);
 };

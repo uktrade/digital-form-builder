@@ -2,7 +2,7 @@ const Section = require("./section");
 
 class AddLinkSection extends Section {
   get parent() {
-    return browser.$(".flyout-menu-container");
+    return browser.$(".panel");
   }
 
   get fromSelectList() {
@@ -29,6 +29,16 @@ class AddLinkSection extends Section {
     this.selectFromByName(fromPage);
     this.selectToByName(toPage);
     this.saveBtn.click();
+  }
+
+  /**
+   * Chooses a condition from the select list
+   * @param conditionName
+   */
+  selectACondition(conditionName) {
+    return this.parent
+      .$("[data-testid='select-condition']")
+      .selectByVisibleText(conditionName);
   }
 }
 

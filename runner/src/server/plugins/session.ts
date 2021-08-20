@@ -1,8 +1,7 @@
 import config from "../config";
-import yar from "yar";
 
 export default {
-  plugin: yar,
+  plugin: require("@hapi/yar"),
   options: {
     cache: {
       expiresIn: config.sessionTimeout,
@@ -14,8 +13,9 @@ export default {
           .fill(0)
           .map(() => Math.random().toString(36).charAt(2))
           .join(""),
-      isSecure: !!config.sslKey,
+      isSecure: !!config.isDev,
       isHttpOnly: true,
+      isSameSite: "Lax",
     },
   },
 };

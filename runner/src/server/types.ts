@@ -1,4 +1,5 @@
 import { Request, ResponseToolkit, Server, ResponseObject } from "@hapi/hapi";
+import { Logger } from "@types/pino";
 
 import { RateOptions } from "./plugins/rateLimit";
 import {
@@ -6,7 +7,6 @@ import {
   EmailService,
   NotifyService,
   PayService,
-  SheetsService,
   UploadService,
   WebhookService,
 } from "./services";
@@ -18,7 +18,6 @@ type Services = (
   emailService: EmailService;
   notifyService: NotifyService;
   payService: PayService;
-  sheetsService: SheetsService;
   uploadService: UploadService;
   webhookService: WebhookService;
 };
@@ -47,6 +46,7 @@ declare module "@hapi/hapi" {
   interface Response {}
 
   interface Server {
+    logger: Logger;
     services: Services; // plugin schmervice
     registerService: (services: any[]) => void; // plugin schmervice
   }

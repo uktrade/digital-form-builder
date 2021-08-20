@@ -3,17 +3,16 @@ import { nanoid } from "nanoid";
 import {
   decodeFeedbackContextInfo,
   redirectTo,
-  redirectUrl,
-  RelativeUrl,
+  nonRelativeRedirectUrl,
 } from "./engine";
 
 import { HapiRequest, HapiResponseToolkit } from "../types";
+import { feedbackReturnInfoKey } from "server/plugins/engine/helpers";
 
 function getFeedbackContextInfo(request: HapiRequest) {
-  if (request.query[RelativeUrl.FEEDBACK_RETURN_INFO_PARAMETER]) {
+  if (request.query[feedbackReturnInfoKey]) {
     return decodeFeedbackContextInfo(
-      new RelativeUrl(`${request.url.pathname}${request.url.search}`)
-        .feedbackReturnInfo
+      request.url.searchParams.get(feedbackReturnInfoKey)
     );
   }
 }
@@ -47,7 +46,6 @@ const applicationStatus = {
             payService,
             webhookService,
             cacheService,
-            sheetsService,
           } = request.services([]);
           const {
             pay,
@@ -80,9 +78,9 @@ const applicationStatus = {
           if (reference) {
             await cacheService.clearState(request);
             if (reference !== "UNKNOWN") {
-              return successfulOutcome(request, h, { reference });
+              return successfulOutcome(request, h, { reference, payState });
             } else {
-              return successfulOutcome(request, h);
+              return successfulOutcome(request, h, { payState });
             }
           }
 
@@ -121,7 +119,17 @@ const applicationStatus = {
                       templateId,
                       emailAddress,
                       personalisation = {},
+                      addReferencesToPersonalisation = false,
                     } = output.outputData;
+
+                    if (addReferencesToPersonalisation) {
+                      Object.assign(personalisation, {
+                        hasWebhookReference: !!newReference,
+                        webhookReference: newReference || "",
+                        hasPaymentReference: !!payState?.reference,
+                        paymentReference: payState?.reference || "",
+                      });
+                    }
 
                     return notifyService.sendNotification({
                       apiKey,
@@ -139,18 +147,6 @@ const applicationStatus = {
                     }
                     return webhookService.postRequest(url, formData);
                   }
-                  case "sheets": {
-                    const {
-                      spreadsheetId,
-                      data,
-                      authOptions,
-                    } = output.outputData;
-                    return sheetsService.appendTo(
-                      spreadsheetId,
-                      data,
-                      authOptions
-                    );
-                  }
                   default:
                     return {};
                 }
@@ -164,10 +160,12 @@ const applicationStatus = {
               return successfulOutcome(request, h, {
                 reference: newReference,
                 paySkipped: userCouldntPay,
+                payState,
               });
             } else {
               return successfulOutcome(request, h, {
                 paySkipped: userCouldntPay,
+                payState,
               });
             }
           } catch (err) {
@@ -197,7 +195,7 @@ const applicationStatus = {
             reference,
             meta.description,
             meta.payApiKey,
-            redirectUrl(request, config.payReturnUrl)
+            nonRelativeRedirectUrl(request, config.payReturnUrl)
           );
           await cacheService.mergeState(request, {
             pay: {
