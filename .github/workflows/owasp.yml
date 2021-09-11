@@ -1,0 +1,11 @@
+on: [push]
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan the webapplication
+    steps:
+      - name: OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.2.0
+        with:
+          target: 'https://digital-form-builder-runner.herokuapp.com/a2uqdILPce/clean-air-zone-caz-exemption'
