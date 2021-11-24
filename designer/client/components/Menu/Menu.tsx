@@ -80,7 +80,7 @@ export default function Menu({ updateDownloadedAt, id }: Props) {
       </div>
       {formDetails.isVisible && (
         <Flyout title="Form Details" onHide={formDetails.hide}>
-          <FormDetails onCreate={() => formDetails.hide()} />
+          <FormDetails onCreate={formDetails.hide} />
         </Flyout>
       )}
 
